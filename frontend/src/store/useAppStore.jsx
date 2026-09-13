@@ -15,25 +15,37 @@ export const LOCATIONS = {
 // ─── Initial State ──────────────────────────────────────
 
 const initialState = {
+  // Globe / Navigation
   activeLocation: { ...LOCATIONS.India },
   locationLabel: '',
   cameraAltitude: '--',
   cameraCenter: '--',
   modality: 'Optical RGB',
   entityCount: 0,
+  flyToTarget: null,
+  analysisEntities: [],
+
+  // Chat
   messages: [
     {
       id: 'init-1',
       type: 'assistant',
-      text: '3D Earth console initialized. I can navigate global imagery, project an uploaded footprint, and annotate detected targets directly on the terrain.',
+      text: '3D Earth console initialized. Navigate to Upload to load imagery, or use the Query workspace for analysis.',
       result: 'THREE.JS / WORLD IMAGERY / READY',
     },
   ],
+
+  // Upload
   uploadedFile: null,
   uploadedDataUrl: null,
+  uploadedPaths: [],           // File paths from /api/upload
+  uploadValidation: null,      // Compatibility result from /api/upload
+
+  // Query
   isQuerying: false,
-  flyToTarget: null, // { latitude, longitude, altitude } — consumed by globe
-  analysisEntities: [], // [{ lat, lng, label, color, type }]
+  executionTrace: null,        // Latest execution trace
+  queryHistory: [],            // Array of past query results
+  activeQueryId: null,         // Currently viewed query
 };
 
 // ─── Action Types ───────────────────────────────────────
@@ -48,6 +60,11 @@ const CLEAR_FLY_TARGET = 'CLEAR_FLY_TARGET';
 const SET_UPLOAD = 'SET_UPLOAD';
 const SET_ENTITIES = 'SET_ENTITIES';
 const CLEAR_ENTITIES = 'CLEAR_ENTITIES';
+const SET_UPLOADED_PATHS = 'SET_UPLOADED_PATHS';
+const SET_UPLOAD_VALIDATION = 'SET_UPLOAD_VALIDATION';
+const SET_EXECUTION_TRACE = 'SET_EXECUTION_TRACE';
+const ADD_QUERY_HISTORY = 'ADD_QUERY_HISTORY';
+const SET_ACTIVE_QUERY = 'SET_ACTIVE_QUERY';
 
 // ─── Reducer ────────────────────────────────────────────
 
@@ -100,6 +117,19 @@ function appReducer(state, action) {
       };
     case CLEAR_ENTITIES:
       return { ...state, analysisEntities: [], entityCount: 0 };
+    case SET_UPLOADED_PATHS:
+      return { ...state, uploadedPaths: action.payload };
+    case SET_UPLOAD_VALIDATION:
+      return { ...state, uploadValidation: action.payload };
+    case SET_EXECUTION_TRACE:
+      return { ...state, executionTrace: action.payload };
+    case ADD_QUERY_HISTORY:
+      return {
+        ...state,
+        queryHistory: [action.payload, ...state.queryHistory].slice(0, 50),
+      };
+    case SET_ACTIVE_QUERY:
+      return { ...state, activeQueryId: action.payload };
     default:
       return state;
   }
@@ -151,6 +181,28 @@ export function AppStoreProvider({ children }) {
 
     clearEntities: useCallback(() => {
       dispatch({ type: CLEAR_ENTITIES });
+    }, []),
+
+    // ── New actions for the extended pipeline ────────────
+
+    setUploadedPaths: useCallback((paths) => {
+      dispatch({ type: SET_UPLOADED_PATHS, payload: paths });
+    }, []),
+
+    setUploadValidation: useCallback((validation) => {
+      dispatch({ type: SET_UPLOAD_VALIDATION, payload: validation });
+    }, []),
+
+    setExecutionTrace: useCallback((trace) => {
+      dispatch({ type: SET_EXECUTION_TRACE, payload: trace });
+    }, []),
+
+    addQueryHistory: useCallback((entry) => {
+      dispatch({ type: ADD_QUERY_HISTORY, payload: entry });
+    }, []),
+
+    setActiveQuery: useCallback((queryId) => {
+      dispatch({ type: SET_ACTIVE_QUERY, payload: queryId });
     }, []),
   };
 
