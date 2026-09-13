@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SatQuery AI — Analysis Report 38a2b34c-cb5</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #080d1a;
+            color: #edf6ff;
+            padding: 40px 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px;
+            background: rgba(9, 17, 31, 0.88);
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            font-size: 20px;
+            font-weight: 700;
+        }
+        .header .badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            font-family: monospace;
+        }
+        .card {
+            background: rgba(9, 17, 31, 0.88);
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-bottom: 16px;
+        }
+        .card h2 {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #91a4bb;
+            margin-bottom: 12px;
+        }
+        .answer {
+            font-size: 15px;
+            line-height: 1.7;
+            color: #edf6ff;
+        }
+        .confidence-bar {
+            height: 6px;
+            background: #1e293b;
+            border-radius: 3px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        .confidence-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .trace-json {
+            background: #06101b;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 16px;
+            font-family: monospace;
+            font-size: 11px;
+            color: #91a4bb;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #60738c;
+            font-size: 11px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>🛰️ SatQuery AI Report</h1>
+                <p style="color:#91a4bb;font-size:12px;margin-top:4px;">
+                    Query ID: 38a2b34c-cb5 · 2026-09-13T12:55:35.786585+00:00
+                </p>
+            </div>
+            <div class="badge" style="background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);color:#a7f3d0;">
+                SUCCESS
+            </div>
+        </div>
+
+        <!-- Query -->
+        <div class="card">
+            <h2>Query</h2>
+            <p class="answer" style="color:#f5e9b9;">Has the built-up area increased?</p>
+        </div>
+
+        <!-- Answer -->
+        <div class="card">
+            <h2>Answer</h2>
+            <p class="answer">The scene depicts an agricultural landscape with irrigated fields.</p>
+        </div>
+
+        <!-- Confidence -->
+        <div class="card">
+            <h2>Confidence</h2>
+            <p style="font-size:24px;font-weight:700;color:#10b981;">90.0%</p>
+            <div class="confidence-bar">
+                <div class="confidence-fill" style="width:90.0%;background:#10b981;"></div>
+            </div>
+        </div>
+
+        <!-- Pipeline Details -->
+        <div class="card">
+            <h2>Pipeline Execution</h2>
+            <table>
+                <tr>
+                    <td style="padding:8px 12px;border-bottom:1px solid #1e293b;color:#91a4bb;font-size:12px;">Task Type</td>
+                    <td style="padding:8px 12px;border-bottom:1px solid #1e293b;color:#38bdf8;font-size:12px;font-weight:600;">vqa</td>
+                </tr>
+                <tr>
+                    <td style="padding:8px 12px;border-bottom:1px solid #1e293b;color:#91a4bb;font-size:12px;">Tool Used</td>
+                    <td style="padding:8px 12px;border-bottom:1px solid #1e293b;color:#edf6ff;font-size:12px;">rs_vqa_v1</td>
+                </tr>
+                <tr>
+                    <td style="padding:8px 12px;border-bottom:1px solid #1e293b;color:#91a4bb;font-size:12px;">Processing Time</td>
+                    <td style="padding:8px 12px;border-bottom:1px solid #1e293b;color:#edf6ff;font-size:12px;">0.5 ms</td>
+                </tr>
+                <tr>
+                    <td style="padding:8px 12px;border-bottom:1px solid #1e293b;color:#91a4bb;font-size:12px;">Parameters</td>
+                    <td style="padding:8px 12px;border-bottom:1px solid #1e293b;color:#edf6ff;font-size:12px;">{'question_type': 'scene'}</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Evidence -->
+        <div class="card">
+            <h2>Evidence</h2>
+            <table>
+        <tr>
+            <td style="padding:8px 12px;border-bottom:1px solid #1e293b;color:#91a4bb;font-size:12px;">question_type</td>
+            <td style="padding:8px 12px;border-bottom:1px solid #1e293b;color:#edf6ff;font-size:12px;">scene</td>
+        </tr></table>
+        </div>
+
+        <!-- Full Trace -->
+        <div class="card">
+            <h2>Execution Trace (JSON)</h2>
+            <div class="trace-json">{
+  "query_id": "38a2b34c-cb5",
+  "timestamp": "2026-09-13T12:55:35.786585+00:00",
+  "query": "Has the built-up area increased?",
+  "input_summary": {
+    "type": "text_only",
+    "modality": "none",
+    "format": "unknown",
+    "n_images": 0
+  },
+  "selected_task": "vqa",
+  "selected_tool": "rs_vqa_v1",
+  "parameters_used": {
+    "question_type": "scene"
+  },
+  "confidence": 0.9,
+  "evidence": {
+    "question_type": "scene"
+  },
+  "answer": "The scene depicts an agricultural landscape with irrigated fields.",
+  "processing_time_ms": 0.5,
+  "status": "success",
+  "error": null
+}</div>
+        </div>
+
+        <div class="footer">
+            SatQuery AI · ISRO Multimodal Remote Sensing Assistant · Generated 2026-09-13 18:25:35
+        </div>
+    </div>
+</body>
+</html>
