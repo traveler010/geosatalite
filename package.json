@@ -1,0 +1,14 @@
+{
+  "name": "satquery-ai-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SatQuery AI - Multimodal Remote Sensing Assistant Workspace",
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "preview": "npm --prefix frontend run preview",
+    "frontend": "npm --prefix frontend run dev",
+    "backend": "python -m uvicorn backend.main:app --reload --port 8000",
+    "test:backend": "python test_endpoints.py"
+  }
+}

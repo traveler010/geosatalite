@@ -1,4 +1,4 @@
-import { useRef, useMemo, useEffect, useCallback } from 'react';
+import { useRef, useMemo, useEffect, useCallback, Component, Suspense } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Stars, useTexture, Html } from '@react-three/drei';
 import * as THREE from 'three';
@@ -8,12 +8,15 @@ import { formatAltitude } from '../services/api';
 
 const GLOBE_RADIUS = 2;
 
-// NASA Blue Marble textures (public domain)
-const EARTH_TEXTURE = 'https://unpkg.com/three-globe@2.41.12/example/img/earth-blue-marble.jpg';
-const EARTH_BUMP = 'https://unpkg.com/three-globe@2.41.12/example/img/earth-topology.png';
-const EARTH_SPECULAR = 'https://unpkg.com/three-globe@2.41.12/example/img/earth-water.png';
-const EARTH_NIGHT = 'https://unpkg.com/three-globe@2.41.12/example/img/earth-night.jpg';
-const EARTH_CLOUDS = 'https://unpkg.com/three-globe@2.41.12/example/img/earth-clouds.png';
+// Local high-resolution Blue Marble textures (offline & CORS safe)
+const BASE_URL = import.meta.env.BASE_URL || '/';
+const getTexturePath = (path) => `${BASE_URL.replace(/\/$/, '')}/${path.replace(/^\//, '')}`;
+
+const EARTH_TEXTURE = getTexturePath('textures/earth-blue-marble.jpg');
+const EARTH_BUMP = getTexturePath('textures/earth-topology.png');
+const EARTH_SPECULAR = getTexturePath('textures/earth-water.png');
+const EARTH_NIGHT = getTexturePath('textures/earth-night.jpg');
+const EARTH_CLOUDS = getTexturePath('textures/earth-clouds.png');
 
 // ─── Atmosphere Shader ──────────────────────────────────
 
@@ -39,7 +42,81 @@ const AtmosphereShader = {
   `,
 };
 
-// ─── Earth Sphere ───────────────────────────────────────
+// ─── Procedural Fallback Earth (instant load / texture fault recovery) ───
+
+function ProceduralEarth() {
+  const meshRef = useRef();
+
+  useFrame((_, delta) => {
+    if (meshRef.current) {
+      meshRef.current.rotation.y += delta * 0.03;
+    }
+  });
+
+  return (
+    <group>
+      {/* Base Earth Sphere with high-contrast ocean & land gradient */}
+      <mesh ref={meshRef}>
+        <sphereGeometry args={[GLOBE_RADIUS, 64, 64]} />
+        <meshPhongMaterial
+          color="#0d2b45"
+          emissive="#021020"
+          specular={new THREE.Color(0x38bdf8)}
+          shininess={30}
+        />
+      </mesh>
+
+      {/* Lat/Long Coordinate Grid Wireframe */}
+      <mesh scale={[1.002, 1.002, 1.002]}>
+        <sphereGeometry args={[GLOBE_RADIUS, 36, 18]} />
+        <meshBasicMaterial
+          color="#38bdf8"
+          wireframe
+          transparent
+          opacity={0.18}
+        />
+      </mesh>
+
+      {/* Atmosphere Glow */}
+      <mesh scale={[1.14, 1.14, 1.14]}>
+        <sphereGeometry args={[GLOBE_RADIUS, 64, 64]} />
+        <shaderMaterial
+          vertexShader={AtmosphereShader.vertexShader}
+          fragmentShader={AtmosphereShader.fragmentShader}
+          side={THREE.BackSide}
+          transparent
+          depthWrite={false}
+        />
+      </mesh>
+    </group>
+  );
+}
+
+// ─── Fiber-level Error Boundary for 3D Mesh ─────────────
+
+class EarthMeshErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(err) {
+    console.warn('[EarthMeshErrorBoundary] Textures failed to mount, using procedural earth:', err);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <ProceduralEarth />;
+    }
+    return this.props.children;
+  }
+}
+
+// ─── Earth Sphere with Real Textures ────────────────────
 
 function Earth() {
   const meshRef = useRef();
@@ -120,9 +197,10 @@ function LocationMarker({ lat, lng, label, color = '#facc15', pulse = true }) {
   );
   const markerRef = useRef();
 
-  useFrame((state) => {
+  useFrame(() => {
     if (pulse && markerRef.current) {
-      const scale = 1 + Math.sin(state.clock.elapsedTime * 3) * 0.3;
+      const time = performance.now() * 0.001;
+      const scale = 1 + Math.sin(time * 3) * 0.3;
       markerRef.current.scale.setScalar(scale);
     }
   });
@@ -168,9 +246,10 @@ function AnalysisMarker({ lat, lng, label, color = '#38bdf8' }) {
   );
   const ringRef = useRef();
 
-  useFrame((state) => {
+  useFrame(() => {
     if (ringRef.current) {
-      ringRef.current.rotation.z = state.clock.elapsedTime * 1.5;
+      const time = performance.now() * 0.001;
+      ringRef.current.rotation.z = time * 1.5;
     }
   });
 
@@ -310,7 +389,17 @@ export default function EarthGlobe() {
           near: 0.1,
           far: 100,
         }}
-        gl={{ antialias: true, alpha: false }}
+        gl={{
+          antialias: true,
+          alpha: false,
+          powerPreference: 'high-performance',
+        }}
+        onCreated={({ gl }) => {
+          gl.domElement?.addEventListener('webglcontextlost', (event) => {
+            event.preventDefault();
+            console.warn('[EarthGlobe] WebGL context lost. Preventing crash...');
+          });
+        }}
         style={{ background: '#06101b' }}
       >
         <SceneLights />
@@ -323,7 +412,14 @@ export default function EarthGlobe() {
           fade
           speed={0.5}
         />
-        <Earth />
+        
+        {/* Safe fallback for Earth mesh if textures delay or encounter issues */}
+        <Suspense fallback={<ProceduralEarth />}>
+          <EarthMeshErrorBoundary>
+            <Earth />
+          </EarthMeshErrorBoundary>
+        </Suspense>
+
         <CameraController />
 
         {/* Active location marker */}
