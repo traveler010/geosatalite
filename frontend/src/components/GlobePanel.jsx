@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import { formatCoordinate } from '../services/api';
 import EarthGlobe from './EarthGlobe';
+import GlobeErrorBoundary from './GlobeErrorBoundary';
 import SearchHUD from './SearchHUD';
 import QuickLocations from './QuickLocations';
 import { Upload, Eye } from 'lucide-react';
@@ -77,19 +78,21 @@ export default function GlobePanel() {
           VIEW MODE <strong className="text-emerald font-medium">3D / TERRAIN</strong> · MOUSE NAVIGATION ENABLED
         </div>
 
-        {/* 3D Earth */}
-        <Suspense
-          fallback={
-            <div className="w-full h-full flex items-center justify-center bg-bg-deep">
-              <div className="text-center">
-                <div className="w-10 h-10 mx-auto mb-3 border-2 border-blue-bright/30 border-t-blue-bright rounded-full animate-spin-slow" />
-                <p className="text-muted text-xs font-mono">Loading 3D Earth...</p>
+        {/* 3D Earth Viewport */}
+        <GlobeErrorBoundary>
+          <Suspense
+            fallback={
+              <div className="w-full h-full flex items-center justify-center bg-bg-deep">
+                <div className="text-center">
+                  <div className="w-10 h-10 mx-auto mb-3 border-2 border-blue-bright/30 border-t-blue-bright rounded-full animate-spin-slow" />
+                  <p className="text-muted text-xs font-mono">Initializing 3D Geospatial Engine...</p>
+                </div>
               </div>
-            </div>
-          }
-        >
-          <EarthGlobe />
-        </Suspense>
+            }
+          >
+            <EarthGlobe />
+          </Suspense>
+        </GlobeErrorBoundary>
 
         {/* Quick Locations */}
         <QuickLocations />

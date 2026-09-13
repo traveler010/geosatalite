@@ -7,6 +7,10 @@
  * - Open Elevation API
  * - Open-Meteo weather API
  * - Backend AI query (localhost:8000)
+ * - Upload & validation
+ * - Tool registry
+ * - Execution traces
+ * - Report generation
  * 
  * All APIs are free and require no API keys.
  */
@@ -205,10 +209,10 @@ export async function fetchWeather(lat, lng) {
   }
 }
 
-// ─── Backend AI Query ────────────────────────────────────
+// ─── Backend AI Query (Legacy — used by SidePanel) ───────
 
 /**
- * Send a query to the SatQuery AI backend
+ * Send a query to the SatQuery AI backend (legacy endpoint)
  * @param {string} prompt - User query
  * @param {{latitude: number, longitude: number, altitude: number}} location - Active location
  * @param {File | null} imageFile - Optional uploaded image
@@ -236,6 +240,109 @@ export async function queryBackend(prompt, location, imageFile = null) {
   } catch (error) {
     console.error('[API] queryBackend failed:', error);
     throw error;
+  }
+}
+
+// ─── Backend AI Query V2 (New Pipeline) ──────────────────
+
+/**
+ * Send a query through the new agentic pipeline
+ * @param {string} query - Natural language question
+ * @param {{latitude: number, longitude: number}} location - Active location
+ * @param {string[]} imagePaths - Previously uploaded file paths
+ * @param {File | null} imageFile - Optional inline image upload
+ * @returns {Promise<object>}
+ */
+export async function queryBackendV2(query, location, imagePaths = [], imageFile = null) {
+  try {
+    const formData = new FormData();
+    formData.append('query', query);
+    formData.append('location', JSON.stringify(location));
+
+    if (imagePaths.length > 0) {
+      formData.append('image_paths', JSON.stringify(imagePaths));
+    }
+
+    if (imageFile) {
+      formData.append('image', imageFile, imageFile.name);
+    }
+
+    const response = await fetch(`${BACKEND_BASE}/api/query`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) throw new Error('Backend unavailable');
+    return await response.json();
+  } catch (error) {
+    console.error('[API] queryBackendV2 failed:', error);
+    throw error;
+  }
+}
+
+// ─── Upload Images ───────────────────────────────────────
+
+/**
+ * Upload images for validation
+ * @param {File[]} files - Image files to upload
+ * @param {string} modalityHints - Comma-separated modality hints
+ * @returns {Promise<object>}
+ */
+export async function uploadImages(files, modalityHints = '') {
+  try {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append('files', file, file.name);
+    });
+    if (modalityHints) {
+      formData.append('modality_hints', modalityHints);
+    }
+
+    const response = await fetch(`${BACKEND_BASE}/api/upload`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) throw new Error('Upload failed');
+    return await response.json();
+  } catch (error) {
+    console.error('[API] uploadImages failed:', error);
+    throw error;
+  }
+}
+
+// ─── Fetch Tools Registry ────────────────────────────────
+
+/**
+ * Get the list of available analysis tools
+ * @returns {Promise<object>}
+ */
+export async function fetchTools() {
+  try {
+    const response = await fetch(`${BACKEND_BASE}/api/tools`);
+    if (!response.ok) throw new Error('Tools fetch failed');
+    return await response.json();
+  } catch (error) {
+    console.error('[API] fetchTools failed:', error);
+    return { tools: [], total: 0 };
+  }
+}
+
+// ─── Fetch Execution Trace ───────────────────────────────
+
+/**
+ * Retrieve an execution trace by query ID
+ * @param {string} queryId
+ * @returns {Promise<object | null>}
+ */
+export async function fetchTrace(queryId) {
+  try {
+    const response = await fetch(`${BACKEND_BASE}/api/trace/${queryId}`);
+    if (!response.ok) return null;
+    return await response.json();
+  } catch (error) {
+    console.error('[API] fetchTrace failed:', error);
+    return null;
   }
 }
 
