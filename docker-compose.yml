@@ -1,0 +1,32 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: satquery-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+      - SATQUERY_MOCK=true
+      - SATQUERY_MODEL_DIR=/app/backend/checkpoints
+      - SATQUERY_CORS_ORIGINS=http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:3000
+    volumes:
+      # Mount host backend directory for hot-reloading code changes in development
+      - ./backend:/app/backend
+      # Prevent container Linux bytecode from conflicting with host OS bytecode
+      - /app/backend/__pycache__
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - satquery-network
+
+networks:
+  satquery-network:
+    driver: bridge
