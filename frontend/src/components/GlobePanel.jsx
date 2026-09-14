@@ -5,6 +5,7 @@ import EarthGlobe from './EarthGlobe';
 import GlobeErrorBoundary from './GlobeErrorBoundary';
 import SearchHUD from './SearchHUD';
 import QuickLocations from './QuickLocations';
+import SolarTimeHUD from './SolarTimeHUD';
 import { Upload, Eye } from 'lucide-react';
 
 export default function GlobePanel() {
@@ -96,6 +97,9 @@ export default function GlobePanel() {
 
         {/* Quick Locations */}
         <QuickLocations />
+
+        {/* Solar Ephemeris & Day/Night Time HUD */}
+        <SolarTimeHUD />
       </div>
 
       {/* Footer */}

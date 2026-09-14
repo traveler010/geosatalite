@@ -8,13 +8,13 @@ services:
     container_name: satquery-backend
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "${PORT:-8000}:8000"
+    env_file:
+      - .env
     environment:
       - PYTHONUNBUFFERED=1
       - PYTHONDONTWRITEBYTECODE=1
-      - SATQUERY_MOCK=true
-      - SATQUERY_MODEL_DIR=/app/backend/checkpoints
-      - SATQUERY_CORS_ORIGINS=http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:3000
+
     volumes:
       # Mount host backend directory for hot-reloading code changes in development
       - ./backend:/app/backend
