@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { FileText, Clock, Target, Gauge, Trash2, RefreshCw, ExternalLink, Download } from 'lucide-react';
 import ReportExport from './ReportExport';
+import { BACKEND_BASE } from '../services/api';
 
-const BACKEND_BASE = 'http://localhost:8000';
 
 export default function ReportsPage() {
   const [traces, setTraces] = useState([]);

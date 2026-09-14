@@ -57,9 +57,12 @@ CONFIDENCE_MEDIUM = 0.55
 CONFIDENCE_LOW = 0.30
 
 # ─── CORS ────────────────────────────────────────────────
-ALLOWED_ORIGINS = [
+DEFAULT_ORIGINS = [
     "http://localhost:5173",   # Vite dev server
     "http://localhost:3000",
     "http://127.0.0.1:5173",
     "http://127.0.0.1:3000",
 ]
+_cors_env = os.getenv("SATQUERY_CORS_ORIGINS", "")
+ALLOWED_ORIGINS = [o.strip() for o in _cors_env.split(",") if o.strip()] if _cors_env else DEFAULT_ORIGINS
+

@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Download, FileText, Loader2, ExternalLink } from 'lucide-react';
+import { BACKEND_BASE } from '../services/api';
 
-const BACKEND_BASE = 'http://localhost:8000';
 
 export default function ReportExport({ queryId }) {
   const [downloading, setDownloading] = useState(false);

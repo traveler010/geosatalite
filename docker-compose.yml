@@ -1,0 +1,57 @@
+name: satquery-ai
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: satquery-backend
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8000}:8000"
+    env_file:
+      - .env
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    volumes:
+      # Mount host backend directory for hot-reloading code changes in development
+      - ./backend:/app/backend
+      # Prevent container Linux bytecode from conflicting with host OS bytecode
+      - /app/backend/__pycache__
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - satquery-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: dev
+    container_name: satquery-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    env_file:
+      - .env
+    environment:
+      - VITE_BACKEND_URL=http://localhost:8000
+    volumes:
+      # Mount host frontend directory for hot-reloading in development
+      - ./frontend:/app
+      # Preserve container node_modules from host overwrite
+      - /app/node_modules
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - satquery-network
+
+networks:
+  satquery-network:
+    driver: bridge
