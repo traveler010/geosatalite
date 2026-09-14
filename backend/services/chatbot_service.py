@@ -68,6 +68,8 @@ def generate_chat_response(
             "response": "DeepSeek reasoning service is currently unavailable.",
             "reasoning": None,
         }
+
+    messages = []
     default_system = (
         "You are SatQuery AI, an expert agentic assistant for Multimodal Remote Sensing, "
         "satellite image analysis (optical, SAR, multispectral), and Earth observation intelligence."
