@@ -441,3 +441,51 @@ export async function importNasaApod(imageUrl, title, date) {
   }
   return await resp.json();
 }
+
+// ─── NVIDIA DeepSeek & Vision Integration ──────────────────
+
+/**
+ * Direct chat query with DeepSeek reasoning model
+ * @param {string} message
+ * @param {object} options - { systemPrompt, context, temperature, maxTokens }
+ */
+export async function queryDeepSeekChat(message, options = {}) {
+  const resp = await fetch(`${BACKEND_BASE}/api/ai/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      message,
+      system_prompt: options.systemPrompt,
+      context: options.context,
+      temperature: options.temperature || 1.0,
+      max_tokens: options.maxTokens || 4096,
+    }),
+  });
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({ detail: 'Chat failed' }));
+    throw new Error(err.detail || 'DeepSeek chat request failed');
+  }
+  return await resp.json();
+}
+
+/**
+ * Visual image processing with NVIDIA Nemotron Parse 2.0
+ * @param {string} imageUrl
+ * @param {object} options - { promptTokens, maxTokens }
+ */
+export async function parseVisionNemotron(imageUrl, options = {}) {
+  const resp = await fetch(`${BACKEND_BASE}/api/ai/vision-parse`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      image_url: imageUrl,
+      prompt_tokens: options.promptTokens || '</s><s><predict_bbox><predict_classes><output_markdown><predict_text_in_pic>',
+      max_tokens: options.maxTokens || 2048,
+    }),
+  });
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({ detail: 'Vision parse failed' }));
+    throw new Error(err.detail || 'Nemotron Parse request failed');
+  }
+  return await resp.json();
+}
