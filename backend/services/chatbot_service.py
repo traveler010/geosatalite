@@ -10,7 +10,13 @@ from __future__ import annotations
 import logging
 from typing import Optional, Dict, Any
 
-from openai import OpenAI
+try:
+    from openai import OpenAI
+    HAS_OPENAI = True
+except ImportError:
+    HAS_OPENAI = False
+    OpenAI = None
+
 from backend.config import (
     NVIDIA_BASE_URL,
     NVIDIA_CHAT_API_KEY,
@@ -23,14 +29,21 @@ logger = logging.getLogger("satquery.chat")
 _client: Optional[OpenAI] = None
 
 
-def get_chat_client() -> OpenAI:
+def get_chat_client() -> Optional[OpenAI]:
     global _client
+    if not HAS_OPENAI:
+        logger.warning("openai package not installed. Chatbot service will run in fallback mode.")
+        return None
     if _client is None:
-        _client = OpenAI(
-            base_url=NVIDIA_BASE_URL,
-            api_key=NVIDIA_CHAT_API_KEY,
-            timeout=60.0,
-        )
+        try:
+            _client = OpenAI(
+                base_url=NVIDIA_BASE_URL,
+                api_key=NVIDIA_CHAT_API_KEY,
+                timeout=12.0,
+            )
+        except Exception as err:
+            logger.warning(f"Could not initialize NVIDIA chat client: {err}")
+            return None
     return _client
 
 
@@ -46,8 +59,15 @@ def generate_chat_response(
     Generate response with thinking/reasoning using deepseek-ai/deepseek-v4-flash-0731.
     """
     client = get_chat_client()
-
-    messages = []
+    if not client:
+        return {
+            "success": False,
+            "model": NVIDIA_CHAT_MODEL,
+            "error": "NVIDIA Chat client unavailable",
+            "answer": "DeepSeek reasoning service is currently unavailable.",
+            "response": "DeepSeek reasoning service is currently unavailable.",
+            "reasoning": None,
+        }
     default_system = (
         "You are SatQuery AI, an expert agentic assistant for Multimodal Remote Sensing, "
         "satellite image analysis (optical, SAR, multispectral), and Earth observation intelligence."
