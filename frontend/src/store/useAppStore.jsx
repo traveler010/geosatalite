@@ -46,6 +46,12 @@ const initialState = {
   executionTrace: null,        // Latest execution trace
   queryHistory: [],            // Array of past query results
   activeQueryId: null,         // Currently viewed query
+
+  // Solar & Day/Night Ephemeris Controls
+  timeMode: 'live',            // 'live' (sync to real-world clock) | 'manual' (scrub slider)
+  customUtcHours: new Date().getUTCHours() + new Date().getUTCMinutes() / 60,
+  isPlayingTimelapse: false,   // continuous time-lapse rotation
+  nightLightsBoost: 1.8,       // Night city lights emission intensity multiplier
 };
 
 // ─── Action Types ───────────────────────────────────────
@@ -65,6 +71,10 @@ const SET_UPLOAD_VALIDATION = 'SET_UPLOAD_VALIDATION';
 const SET_EXECUTION_TRACE = 'SET_EXECUTION_TRACE';
 const ADD_QUERY_HISTORY = 'ADD_QUERY_HISTORY';
 const SET_ACTIVE_QUERY = 'SET_ACTIVE_QUERY';
+const SET_TIME_MODE = 'SET_TIME_MODE';
+const SET_CUSTOM_UTC_HOURS = 'SET_CUSTOM_UTC_HOURS';
+const TOGGLE_TIMELAPSE = 'TOGGLE_TIMELAPSE';
+const SET_NIGHT_LIGHTS_BOOST = 'SET_NIGHT_LIGHTS_BOOST';
 
 // ─── Reducer ────────────────────────────────────────────
 
@@ -130,6 +140,14 @@ function appReducer(state, action) {
       };
     case SET_ACTIVE_QUERY:
       return { ...state, activeQueryId: action.payload };
+    case SET_TIME_MODE:
+      return { ...state, timeMode: action.payload };
+    case SET_CUSTOM_UTC_HOURS:
+      return { ...state, customUtcHours: action.payload };
+    case TOGGLE_TIMELAPSE:
+      return { ...state, isPlayingTimelapse: !state.isPlayingTimelapse };
+    case SET_NIGHT_LIGHTS_BOOST:
+      return { ...state, nightLightsBoost: action.payload };
     default:
       return state;
   }
@@ -203,6 +221,22 @@ export function AppStoreProvider({ children }) {
 
     setActiveQuery: useCallback((queryId) => {
       dispatch({ type: SET_ACTIVE_QUERY, payload: queryId });
+    }, []),
+
+    setTimeMode: useCallback((mode) => {
+      dispatch({ type: SET_TIME_MODE, payload: mode });
+    }, []),
+
+    setCustomUtcHours: useCallback((hours) => {
+      dispatch({ type: SET_CUSTOM_UTC_HOURS, payload: hours });
+    }, []),
+
+    toggleTimelapse: useCallback(() => {
+      dispatch({ type: TOGGLE_TIMELAPSE });
+    }, []),
+
+    setNightLightsBoost: useCallback((boost) => {
+      dispatch({ type: SET_NIGHT_LIGHTS_BOOST, payload: boost });
     }, []),
   };
 

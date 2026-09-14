@@ -23,7 +23,7 @@ export default function QuickLocations() {
   };
 
   return (
-    <div className="absolute bottom-4 left-4 right-4 z-10 flex flex-wrap gap-[7px]">
+    <div className="absolute bottom-[84px] left-3.5 right-3.5 z-10 flex flex-wrap gap-[6px] pointer-events-auto">
       {QUICK_LOCATIONS.map((name) => (
         <button
           key={name}
