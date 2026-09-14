@@ -22,6 +22,35 @@ BENCHMARK_FORMATS = {".png", ".jpg", ".jpeg"}
 MODEL_CHECKPOINT_DIR = os.getenv("SATQUERY_MODEL_DIR", str(BASE_DIR / "checkpoints"))
 USE_MOCK_INFERENCE = os.getenv("SATQUERY_MOCK", "true").lower() == "true"
 
+# ─── NASA APOD API ──────────────────────────────────────
+NASA_BASE_URL = os.getenv(
+    "NASA_BASE_URL", "https://science.nasa.gov/wp-json/wp/v2/apod-basic"
+)
+NASA_API_KEY = os.getenv(
+    "NASA_API_KEY", "mrcH27uIs4gX9tPYIeBl0GFD62p49pMxmlas7vlq4"
+)
+
+# ─── NVIDIA AI Integration ──────────────────────────────
+NVIDIA_BASE_URL = os.getenv(
+    "NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1"
+)
+
+# Chatbot AI: DeepSeek reasoning model
+NVIDIA_CHAT_API_KEY = os.getenv(
+    "NVIDIA_CHAT_API_KEY", "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"
+)
+NVIDIA_CHAT_MODEL = os.getenv(
+    "NVIDIA_CHAT_MODEL", "deepseek-ai/deepseek-v4-flash-0731"
+)
+
+# Visual Image Processing: Nemotron Parse 2.0
+NVIDIA_VISION_API_KEY = os.getenv(
+    "NVIDIA_VISION_API_KEY", "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"
+)
+NVIDIA_VISION_MODEL = os.getenv(
+    "NVIDIA_VISION_MODEL", "nvidia/nemotron-parse-2.0"
+)
+
 # ─── Confidence Thresholds ──────────────────────────────
 CONFIDENCE_HIGH = 0.80
 CONFIDENCE_MEDIUM = 0.55
