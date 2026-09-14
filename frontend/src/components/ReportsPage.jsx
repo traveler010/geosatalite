@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { FileText, Clock, Target, Gauge, Trash2, RefreshCw, ExternalLink, Download } from 'lucide-react';
 import ReportExport from './ReportExport';
-
-const BACKEND_BASE = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+import { BACKEND_BASE } from '../services/api';
 
 
 export default function ReportsPage() {

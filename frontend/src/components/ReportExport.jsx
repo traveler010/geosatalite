@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Download, FileText, Loader2, ExternalLink } from 'lucide-react';
-
-const BACKEND_BASE = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+import { BACKEND_BASE } from '../services/api';
 
 
 export default function ReportExport({ queryId }) {

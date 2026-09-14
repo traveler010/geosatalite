@@ -19,7 +19,7 @@ const NOMINATIM_BASE = 'https://nominatim.openstreetmap.org';
 const OVERPASS_BASE = 'https://overpass-api.de/api/interpreter';
 const ELEVATION_BASE = 'https://api.open-elevation.com/api/v1';
 const WEATHER_BASE = 'https://api.open-meteo.com/v1/forecast';
-const BACKEND_BASE = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+export const BACKEND_BASE = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
 
 // Rate limiter: Nominatim requires max 1 request/second
