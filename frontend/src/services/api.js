@@ -374,3 +374,70 @@ export function formatAltitude(value) {
   if (value > 1000) return (value / 1000).toFixed(1) + ' km';
   return Math.round(value) + ' m';
 }
+
+// ─── NASA APOD Integration ────────────────────────────────
+
+const NASA_DIRECT_BASE = 'https://science.nasa.gov/wp-json/wp/v2/apod-basic';
+const NASA_API_KEY = 'mrcH27uIs4gX9tPYIeBl0GFD62p49pMxmlas7vlq4';
+
+/**
+ * Fetch Astronomy Picture of the Day entries
+ * @param {object} options - { count: 10, page: 1, date: string, search: string }
+ * @returns {Promise<Array<object>>}
+ */
+export async function fetchNasaApod({ count = 10, page = 1, date = null, search = null } = {}) {
+  // Try backend proxy first
+  try {
+    const params = new URLSearchParams();
+    if (count) params.append('count', count);
+    if (page) params.append('page', page);
+    if (search) params.append('search', search);
+
+    const url = date
+      ? `${BACKEND_BASE}/api/nasa/apod/${date}`
+      : `${BACKEND_BASE}/api/nasa/apod?${params}`;
+
+    const resp = await fetch(url);
+    if (resp.ok) {
+      const data = await resp.json();
+      return data.items || (data.item ? [data.item] : []);
+    }
+  } catch (err) {
+    console.warn('[API] Backend NASA proxy unavailable, falling back to direct NASA URL', err);
+  }
+
+  // Fallback directly to science.nasa.gov
+  try {
+    let directUrl = date
+      ? `${NASA_DIRECT_BASE}/${date.replace(/-/g, '').slice(-6)}?api_key=${NASA_API_KEY}`
+      : `${NASA_DIRECT_BASE}?per_page=${count}&page=${page}&api_key=${NASA_API_KEY}`;
+    if (search) directUrl += `&search=${encodeURIComponent(search)}`;
+
+    const resp = await fetch(directUrl);
+    if (!resp.ok) throw new Error(`NASA API error: ${resp.status}`);
+    const data = await resp.json();
+    return Array.isArray(data) ? data : [data];
+  } catch (directErr) {
+    console.error('[API] Direct NASA fetch error:', directErr);
+    return [];
+  }
+}
+
+/**
+ * Import a NASA APOD image into the SatQuery upload workspace
+ * @param {string} imageUrl
+ * @param {string} title
+ * @param {string} date
+ */
+export async function importNasaApod(imageUrl, title, date) {
+  const resp = await fetch(`${BACKEND_BASE}/api/nasa/apod/import`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ image_url: imageUrl, title, date }),
+  });
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({ detail: 'Import failed' }));
+    throw new Error(err.detail || 'Failed to import NASA image');
+  }
+  return await resp.json();
+}

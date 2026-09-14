@@ -22,6 +22,14 @@ BENCHMARK_FORMATS = {".png", ".jpg", ".jpeg"}
 MODEL_CHECKPOINT_DIR = os.getenv("SATQUERY_MODEL_DIR", str(BASE_DIR / "checkpoints"))
 USE_MOCK_INFERENCE = os.getenv("SATQUERY_MOCK", "true").lower() == "true"
 
+# ─── NASA APOD API ──────────────────────────────────────
+NASA_BASE_URL = os.getenv(
+    "NASA_BASE_URL", "https://science.nasa.gov/wp-json/wp/v2/apod-basic"
+)
+NASA_API_KEY = os.getenv(
+    "NASA_API_KEY", "mrcH27uIs4gX9tPYIeBl0GFD62p49pMxmlas7vlq4"
+)
+
 # ─── Confidence Thresholds ──────────────────────────────
 CONFIDENCE_HIGH = 0.80
 CONFIDENCE_MEDIUM = 0.55
