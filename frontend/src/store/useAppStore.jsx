@@ -173,8 +173,8 @@ export function AppStoreProvider({ children }) {
       dispatch({ type: SET_MODALITY, payload: modality });
     }, []),
 
-    addMessage: useCallback((type, text, result = null) => {
-      dispatch({ type: ADD_MESSAGE, payload: { type, text, result } });
+    addMessage: useCallback((type, text, result = null, reasoning = null) => {
+      dispatch({ type: ADD_MESSAGE, payload: { type, text, result, reasoning } });
     }, []),
 
     setQuerying: useCallback((isQuerying) => {

@@ -66,7 +66,7 @@ export default function SidePanel() {
         );
       }
 
-      actions.addMessage('assistant', responseText, 'LIVE API / 3D ENTITIES UPDATED');
+      actions.addMessage('assistant', responseText, 'LIVE API / 3D ENTITIES UPDATED', result.reasoning);
     } catch {
       // Demo fallback
       await new Promise(r => setTimeout(r, 600));
@@ -107,6 +107,7 @@ export default function SidePanel() {
             type={msg.type}
             text={msg.text}
             result={msg.result}
+            reasoning={msg.reasoning}
           />
         ))}
       </div>
