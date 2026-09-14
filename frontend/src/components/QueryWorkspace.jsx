@@ -60,7 +60,12 @@ export default function QueryWorkspace() {
 
       // Add to chat
       if (queryResult.success) {
-        actions.addMessage('assistant', queryResult.answer || 'Analysis complete.', `${queryResult.task_type?.toUpperCase()} / ${queryResult.tool_used} / ${Math.round((queryResult.confidence || 0) * 100)}% confidence`);
+        actions.addMessage(
+          'assistant',
+          queryResult.answer || 'Analysis complete.',
+          `${queryResult.task_type?.toUpperCase()} / ${queryResult.tool_used} / ${Math.round((queryResult.confidence || 0) * 100)}% confidence`,
+          queryResult.reasoning
+        );
       } else {
         actions.addMessage('assistant', queryResult.error || 'Query failed.', 'ERROR');
       }
@@ -212,6 +217,19 @@ export default function QueryWorkspace() {
                           }`}
                           style={{ width: `${Math.round(result.confidence * 100)}%` }}
                         />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* DeepSeek Reasoning Chain of Thought */}
+                  {result.reasoning && (
+                    <div className="mt-3 pt-3 border-t border-border">
+                      <span className="text-[9px] text-blue-bright font-mono uppercase flex items-center gap-1.5">
+                        <Sparkles className="w-3 h-3 text-purple-400" />
+                        DeepSeek Reasoning (Chain of Thought)
+                      </span>
+                      <div className="mt-2 p-2.5 rounded bg-bg-deep/80 border border-blue-bright/20 text-[11px] font-mono text-[#a5b4fc] whitespace-pre-wrap leading-relaxed max-h-56 overflow-y-auto">
+                        {result.reasoning}
                       </div>
                     </div>
                   )}

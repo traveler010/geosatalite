@@ -25,6 +25,7 @@ from backend.models.specialists import get_specialist
 from backend.services.input_checker import check_compatibility
 from backend.services.aggregator import aggregate_outputs, estimate_confidence
 from backend.services.trace_builder import build_trace
+from backend.services.chatbot_service import generate_chat_response
 
 
 # ─── Task Classification ────────────────────────────────
@@ -297,11 +298,39 @@ def execute_query(
 
     # Compose the answer text
     answer_text = aggregated.get("answer") or aggregated.get("caption") or "Analysis complete."
+    reasoning_text = None
+
+    # Synthesize rich response and thinking using DeepSeek reasoning model
+    try:
+        chat_context = {
+            "location": location,
+            "task_type": task_type,
+            "tool_used": tool_id,
+            "specialist_result": aggregated,
+        }
+        deepseek_res = generate_chat_response(
+            prompt=query,
+            system_prompt=(
+                "You are SatQuery AI, an ISRO Multimodal Remote Sensing Assistant for Earth observation intelligence. "
+                f"The specialist model '{tool_id}' analyzed the imagery for task '{task_type}' and produced: {aggregated}. "
+                "Synthesize a clear, authoritative, and helpful answer for the user based on these findings."
+            ),
+            context=chat_context,
+            max_tokens=2048,
+        )
+        if deepseek_res.get("success"):
+            candidate_answer = deepseek_res.get("answer")
+            if candidate_answer and len(candidate_answer.strip()) > 0:
+                answer_text = candidate_answer
+            reasoning_text = deepseek_res.get("reasoning")
+    except Exception:
+        pass
 
     return {
         "query_id": query_id,
         "success": True,
         "answer": answer_text,
+        "reasoning": reasoning_text,
         "confidence": confidence,
         "task_type": task_type,
         "tool_used": tool_id,
