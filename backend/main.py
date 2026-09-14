@@ -25,7 +25,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.config import ALLOWED_ORIGINS
-from backend.routes import upload, query, tools, trace, report
+from backend.routes import upload, query, tools, trace, report, nasa
 
 app = FastAPI(
     title="SatQuery AI",
@@ -48,6 +48,7 @@ app.include_router(query.router)
 app.include_router(tools.router)
 app.include_router(trace.router)
 app.include_router(report.router)
+app.include_router(nasa.router)
 
 # Also expose /query directly for backward-compatibility with older frontends
 app.add_api_route("/query", query.run_query, methods=["POST"], include_in_schema=False)
