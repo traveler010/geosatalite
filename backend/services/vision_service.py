@@ -12,7 +12,13 @@ import logging
 from pathlib import Path
 from typing import Optional, Dict, Any
 
-from openai import OpenAI
+try:
+    from openai import OpenAI
+    HAS_OPENAI = True
+except ImportError:
+    HAS_OPENAI = False
+    OpenAI = None
+
 from backend.config import (
     NVIDIA_BASE_URL,
     NVIDIA_VISION_API_KEY,
@@ -24,14 +30,21 @@ logger = logging.getLogger("satquery.vision")
 _client: Optional[OpenAI] = None
 
 
-def get_vision_client() -> OpenAI:
+def get_vision_client() -> Optional[OpenAI]:
     global _client
+    if not HAS_OPENAI:
+        logger.warning("openai package not installed. Vision service will run in fallback mode.")
+        return None
     if _client is None:
-        _client = OpenAI(
-            base_url=NVIDIA_BASE_URL,
-            api_key=NVIDIA_VISION_API_KEY,
-            timeout=90.0,
-        )
+        try:
+            _client = OpenAI(
+                base_url=NVIDIA_BASE_URL,
+                api_key=NVIDIA_VISION_API_KEY,
+                timeout=20.0,
+            )
+        except Exception as err:
+            logger.warning(f"Could not initialize NVIDIA Vision client: {err}")
+            return None
     return _client
 
 
