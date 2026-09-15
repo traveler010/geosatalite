@@ -2,6 +2,8 @@
 SatQuery AI — Configuration
 """
 
+import logging
+
 import os
 from pathlib import Path
 
@@ -26,9 +28,7 @@ USE_MOCK_INFERENCE = os.getenv("SATQUERY_MOCK", "true").lower() == "true"
 NASA_BASE_URL = os.getenv(
     "NASA_BASE_URL", "https://science.nasa.gov/wp-json/wp/v2/apod-basic"
 )
-NASA_API_KEY = os.getenv(
-    "NASA_API_KEY", "mrcH27uIs4gX9tPYIeBl0GFD62p49pMxmlas7vlq4"
-)
+NASA_API_KEY = os.getenv("NASA_API_KEY", "")
 
 # ─── NVIDIA AI Integration ──────────────────────────────
 NVIDIA_BASE_URL = os.getenv(
@@ -36,17 +36,13 @@ NVIDIA_BASE_URL = os.getenv(
 )
 
 # Chatbot AI: DeepSeek reasoning model
-NVIDIA_CHAT_API_KEY = os.getenv(
-    "NVIDIA_CHAT_API_KEY", "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"
-)
+NVIDIA_CHAT_API_KEY = os.getenv("NVIDIA_CHAT_API_KEY", "")
 NVIDIA_CHAT_MODEL = os.getenv(
     "NVIDIA_CHAT_MODEL", "deepseek-ai/deepseek-v4-flash-0731"
 )
 
 # Visual Image Processing: Nemotron Parse 2.0
-NVIDIA_VISION_API_KEY = os.getenv(
-    "NVIDIA_VISION_API_KEY", "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"
-)
+NVIDIA_VISION_API_KEY = os.getenv("NVIDIA_VISION_API_KEY", "")
 NVIDIA_VISION_MODEL = os.getenv(
     "NVIDIA_VISION_MODEL", "nvidia/nemotron-parse-2.0"
 )
@@ -55,6 +51,13 @@ NVIDIA_VISION_MODEL = os.getenv(
 CONFIDENCE_HIGH = 0.80
 CONFIDENCE_MEDIUM = 0.55
 CONFIDENCE_LOW = 0.30
+
+# ─── Upload Limits ──────────────────────────────────────
+MAX_UPLOAD_SIZE_BYTES = 50 * 1024 * 1024  # 50 MB per file
+ALLOWED_MIME_TYPES = {
+    "image/tiff", "image/jpeg", "image/png",
+    "image/geotiff", "application/octet-stream",
+}
 
 # ─── CORS ────────────────────────────────────────────────
 DEFAULT_ORIGINS = [
@@ -65,4 +68,16 @@ DEFAULT_ORIGINS = [
 ]
 _cors_env = os.getenv("SATQUERY_CORS_ORIGINS", "")
 ALLOWED_ORIGINS = [o.strip() for o in _cors_env.split(",") if o.strip()] if _cors_env else DEFAULT_ORIGINS
+
+
+# ─── Startup Validation ─────────────────────────────────
+_logger = logging.getLogger("satquery.config")
+
+def _warn_missing_key(name: str, value: str) -> None:
+    if not value:
+        _logger.warning(f"⚠ {name} is not set. Related features will be unavailable.")
+
+_warn_missing_key("NASA_API_KEY", NASA_API_KEY)
+_warn_missing_key("NVIDIA_CHAT_API_KEY", NVIDIA_CHAT_API_KEY)
+_warn_missing_key("NVIDIA_VISION_API_KEY", NVIDIA_VISION_API_KEY)
 

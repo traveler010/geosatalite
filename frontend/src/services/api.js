@@ -378,16 +378,13 @@ export function formatAltitude(value) {
 
 // ─── NASA APOD Integration ────────────────────────────────
 
-const NASA_DIRECT_BASE = 'https://science.nasa.gov/wp-json/wp/v2/apod-basic';
-const NASA_API_KEY = 'mrcH27uIs4gX9tPYIeBl0GFD62p49pMxmlas7vlq4';
-
 /**
- * Fetch Astronomy Picture of the Day entries
+ * Fetch Astronomy Picture of the Day entries via backend proxy.
+ * All NASA API keys are kept server-side only.
  * @param {object} options - { count: 10, page: 1, date: string, search: string }
  * @returns {Promise<Array<object>>}
  */
 export async function fetchNasaApod({ count = 10, page = 1, date = null, search = null } = {}) {
-  // Try backend proxy first
   try {
     const params = new URLSearchParams();
     if (count) params.append('count', count);
@@ -399,27 +396,11 @@ export async function fetchNasaApod({ count = 10, page = 1, date = null, search 
       : `${BACKEND_BASE}/api/nasa/apod?${params}`;
 
     const resp = await fetch(url);
-    if (resp.ok) {
-      const data = await resp.json();
-      return data.items || (data.item ? [data.item] : []);
-    }
-  } catch (err) {
-    console.warn('[API] Backend NASA proxy unavailable, falling back to direct NASA URL', err);
-  }
-
-  // Fallback directly to science.nasa.gov
-  try {
-    let directUrl = date
-      ? `${NASA_DIRECT_BASE}/${date.replace(/-/g, '').slice(-6)}?api_key=${NASA_API_KEY}`
-      : `${NASA_DIRECT_BASE}?per_page=${count}&page=${page}&api_key=${NASA_API_KEY}`;
-    if (search) directUrl += `&search=${encodeURIComponent(search)}`;
-
-    const resp = await fetch(directUrl);
-    if (!resp.ok) throw new Error(`NASA API error: ${resp.status}`);
+    if (!resp.ok) throw new Error(`NASA APOD fetch failed: ${resp.status}`);
     const data = await resp.json();
-    return Array.isArray(data) ? data : [data];
-  } catch (directErr) {
-    console.error('[API] Direct NASA fetch error:', directErr);
+    return data.items || (data.item ? [data.item] : []);
+  } catch (err) {
+    console.error('[API] fetchNasaApod failed:', err.message);
     return [];
   }
 }

@@ -8,18 +8,28 @@ from science.nasa.gov APOD REST API.
 from __future__ import annotations
 
 import re
-import json
 import uuid
 import logging
-import urllib.request
 import urllib.parse
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, Any
 
+import httpx
+
 from backend.config import NASA_BASE_URL, NASA_API_KEY, UPLOAD_DIR
 
 logger = logging.getLogger("satquery.nasa")
+
+# Shared httpx client with connection pooling and sensible defaults
+_client = httpx.Client(
+    timeout=httpx.Timeout(15.0, connect=5.0),
+    follow_redirects=True,
+    headers={
+        "User-Agent": "SatQueryAI/1.0",
+        "Accept": "application/json",
+    },
+)
 
 
 def _strip_html(text: str) -> str:
@@ -32,19 +42,14 @@ def _strip_html(text: str) -> str:
 
 
 def _make_request(url: str) -> tuple[int, dict[str, str], Any]:
-    """Execute HTTP GET with NASA API headers and user agent."""
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "X-API-KEY": NASA_API_KEY,
-        "Accept": "application/json",
-    }
-    req = urllib.request.Request(url, headers=headers)
-    with urllib.request.urlopen(req, timeout=15) as response:
-        status = response.status
-        resp_headers = {k.lower(): v for k, v in response.getheaders()}
-        raw = response.read().decode("utf-8")
-        data = json.loads(raw)
-        return status, resp_headers, data
+    """Execute HTTP GET with NASA API headers."""
+    headers = {}
+    if NASA_API_KEY:
+        headers["X-API-KEY"] = NASA_API_KEY
+
+    response = _client.get(url, headers=headers)
+    response.raise_for_status()
+    return response.status_code, dict(response.headers), response.json()
 
 
 def normalize_apod_item(item: dict) -> dict:
@@ -180,12 +185,10 @@ def import_apod_to_session(image_url: str, title: str = "NASA APOD", date_str: s
     filename = f"image_1_nasa_apod_{date_str or 'recent'}{ext}"
     dest_path = session_dir / filename
 
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-    }
-    req = urllib.request.Request(image_url, headers=headers)
-    with urllib.request.urlopen(req, timeout=30) as response:
-        dest_path.write_bytes(response.read())
+    # Download image with httpx
+    response = _client.get(image_url)
+    response.raise_for_status()
+    dest_path.write_bytes(response.content)
 
     # Validate image via SatQuery input checker if available
     try:

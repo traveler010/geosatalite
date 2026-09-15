@@ -24,7 +24,7 @@ export default function ReportExport({ queryId }) {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `satquery_report_${queryId}.html`;
+      a.download = `satquery_report_${queryId}.pdf`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
