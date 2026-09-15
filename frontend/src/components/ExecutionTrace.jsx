@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { ChevronDown, ChevronRight, Copy, Check, Clock, Cpu, Target, Gauge, FileJson } from 'lucide-react';
+import ExecutionTimeline from './ExecutionTimeline';
 
 export default function ExecutionTrace({ trace }) {
   const [expanded, setExpanded] = useState(true);
@@ -110,6 +111,9 @@ export default function ExecutionTrace({ trace }) {
               </div>
             </div>
           )}
+
+          {/* Interactive Stepper Timeline */}
+          <ExecutionTimeline trace={trace} executionSteps={trace.execution_steps} />
 
           {/* Full JSON Toggle */}
           <div>

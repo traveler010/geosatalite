@@ -226,7 +226,7 @@ def execute_query(
         "n_images": len(file_paths),
     }
 
-    # Observable trace matches Section 6 rubric exactly
+    # Observable trace matches Section 6 rubric and Phase 10 report requirements
     trace = build_trace(
         query_id=query_id,
         query=query,
@@ -238,6 +238,14 @@ def execute_query(
         confidence=confidence,
         duration=duration,
         error="; ".join(errors) if errors else None,
+        location=location if isinstance(location, dict) else ({"location_name": str(location)} if location else None),
+        metadata=compatibility.get("metadata"),
+        change_map={
+            "path": aggregated.get("overlay_path"),
+            "url": aggregated.get("overlay_url") or aggregated.get("evidence", {}).get("overlay_url"),
+            "change_percentage": aggregated.get("change_percentage") or aggregated.get("evidence", {}).get("change_percentage"),
+            "changed_regions": aggregated.get("evidence", {}).get("changed_regions") or [],
+        } if (aggregated.get("overlay_path") or aggregated.get("overlay_url")) else None,
     )
 
     answer_text = aggregated.get("answer") or aggregated.get("caption") or "Analysis complete."
