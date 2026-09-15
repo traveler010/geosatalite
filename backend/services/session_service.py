@@ -51,6 +51,23 @@ class SessionService:
         return db.query(SessionRecord).filter(SessionRecord.id == session_id).first()
 
     @staticmethod
+    def list_sessions(db: Session, limit: int = 50, offset: int = 0) -> List[SessionRecord]:
+        return db.query(SessionRecord).order_by(SessionRecord.created_at.desc()).offset(offset).limit(limit).all()
+
+    @staticmethod
+    def delete_session(db: Session, session_id: str) -> bool:
+        session = db.query(SessionRecord).filter(SessionRecord.id == session_id).first()
+        if session:
+            db.delete(session)
+            db.commit()
+            return True
+        return False
+
+    @staticmethod
+    def get_image(db: Session, image_id: str) -> Optional[ImageRecord]:
+        return db.query(ImageRecord).filter(ImageRecord.id == image_id).first()
+
+    @staticmethod
     def add_image_to_session(
         db: Session,
         session_id: str,
