@@ -71,6 +71,16 @@ class GeospatialProcessor:
     """Processes satellite imagery, extracts geospatial metadata, and creates previews."""
 
     @classmethod
+    def validate_and_extract_metadata(cls, image_path: str | Path) -> Dict[str, Any]:
+        """Validate and extract metadata from GeoTIFF or standard raster."""
+        return cls.inspect_and_process_image(image_path)
+
+    @classmethod
+    def generate_preview(cls, image_path: str | Path, output_path: str | Path, max_dim: int = 1024) -> str:
+        """Generate web preview PNG."""
+        return cls.generate_web_preview(image_path, output_path, max_dim=max_dim)
+
+    @classmethod
     def inspect_and_process_image(
         cls,
         image_path: str | Path,

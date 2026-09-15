@@ -31,10 +31,10 @@ async def health_check(db: Session = Depends(get_db)):
     registry = ProviderRegistry.get_instance()
     provider_statuses = await registry.health_check_all()
 
-    all_providers_ok = any(s.value in ("healthy", "mock") for s in provider_statuses.values())
+    has_active_provider = any(s.value in ("healthy", "mock") for s in provider_statuses.values())
 
     return {
-        "status": "healthy" if db_status == "healthy" and all_providers_ok else "degraded",
+        "status": "healthy" if db_status == "healthy" and has_active_provider else "degraded",
         "service": "SatQuery AI",
         "database": db_status,
         "providers": {name: status.value for name, status in provider_statuses.items()},

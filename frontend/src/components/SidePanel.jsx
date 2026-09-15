@@ -44,6 +44,7 @@ export default function SidePanel() {
     actions.addMessage('user', value);
     setPrompt('');
     actions.setQuerying(true);
+    actions.setGlobeState('processing');
 
     try {
       const result = await queryBackend(value, state.activeLocation, state.uploadedFile);
@@ -60,13 +61,28 @@ export default function SidePanel() {
           coords.slice(0, 5).map((pair, i) => ({
             lat: pair[0],
             lng: pair[1],
-            label: `API TARGET / ${i + 1}`,
-            color: '#facc15',
+            label: `TARGET / ${i + 1}`,
+            color: '#06b6d4',
           }))
         );
+        actions.lockLocation({
+          location: { latitude: coords[0][0], longitude: coords[0][1], altitude: 3000 },
+          label: `${result.task_type ? result.task_type.toUpperCase() : 'TARGET'} ZONE`,
+          sensor: result.tool_used || 'Sentinel-2 MSI',
+          source: 'SatQuery AI Agent',
+          confidence: result.confidence || 0.92,
+        });
+      } else if (state.activeLocation) {
+        actions.lockLocation({
+          location: state.activeLocation,
+          label: state.locationLabel || 'Target Analysis AOI',
+          sensor: result.tool_used || 'Sentinel-2 / Remote Sensing AI',
+          source: 'SatQuery Multi-Modal Pipeline',
+          confidence: result.confidence || 0.94,
+        });
       }
 
-      actions.addMessage('assistant', responseText, 'LIVE API / 3D ENTITIES UPDATED', result.reasoning);
+      actions.addMessage('assistant', responseText, 'LIVE API / 3D TARGET LOCKED', result.reasoning);
     } catch {
       // Demo fallback
       await new Promise(r => setTimeout(r, 600));

@@ -40,6 +40,12 @@ class ProviderRegistry:
     def get_instance(cls) -> ProviderRegistry:
         if cls._instance is None:
             cls._instance = ProviderRegistry()
+            # Auto-register core providers
+            cls._instance.register(DeepSeekProvider())
+            cls._instance.register(LocalLLMProvider())
+            cls._instance.register(NvidiaProvider())
+            cls._instance.register(CopernicusProvider())
+            cls._instance.register(NASAProvider())
         return cls._instance
 
     def register(self, provider: BaseProvider) -> None:
@@ -50,13 +56,6 @@ class ProviderRegistry:
         if self._initialized:
             return
 
-        # Register default providers
-        self.register(DeepSeekProvider())
-        self.register(LocalLLMProvider())
-        self.register(NvidiaProvider())
-        self.register(CopernicusProvider())
-        self.register(NASAProvider())
-
         for name, provider in self._providers.items():
             try:
                 await provider.initialize()
@@ -66,8 +65,15 @@ class ProviderRegistry:
         self._initialized = True
         logger.info("ProviderRegistry initialization complete.")
 
+    def get(self, name: str) -> Optional[BaseProvider]:
+        return self._providers.get(name)
+
     def get_provider(self, name: str) -> Optional[BaseProvider]:
         return self._providers.get(name)
+
+    def is_available(self, name: str) -> bool:
+        p = self._providers.get(name)
+        return p.is_available() if p else False
 
     def get_llm_provider(self, preferred: Optional[str] = None) -> BaseLLMProvider:
         """Resolve LLM provider with fallback chain: DeepSeek -> LocalLLM."""

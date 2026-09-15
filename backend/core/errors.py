@@ -115,3 +115,9 @@ async def generic_exception_handler(request: Request, exc: Exception) -> JSONRes
             },
         },
     )
+
+
+def register_error_handlers(app):
+    """Register global exception handlers with FastAPI application."""
+    app.add_exception_handler(SatQueryException, satquery_exception_handler)
+    app.add_exception_handler(Exception, generic_exception_handler)
