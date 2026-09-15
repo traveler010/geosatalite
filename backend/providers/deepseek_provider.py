@@ -74,6 +74,7 @@ class DeepSeekProvider(BaseLLMProvider):
         context: Optional[Dict[str, Any]] = None,
         temperature: float = 0.7,
         max_tokens: int = 4096,
+        conversation_history: Optional[List[Dict[str, str]]] = None,
     ) -> LLMResult:
         t0 = time.perf_counter()
         if not self.is_available() or not self._client:
@@ -99,6 +100,14 @@ class DeepSeekProvider(BaseLLMProvider):
                     "role": "system",
                     "content": "Active Geospatial Context:\n" + "\n".join(context_items),
                 })
+
+        # Append previous conversation turns for multi-turn session memory
+        if conversation_history:
+            for turn in conversation_history:
+                role = turn.get("role", "user")
+                content = turn.get("content", "")
+                if role in ("user", "assistant") and content:
+                    messages.append({"role": role, "content": content})
 
         messages.append({"role": "user", "content": prompt})
 

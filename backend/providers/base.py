@@ -114,8 +114,9 @@ class BaseLLMProvider(BaseProvider):
         context: Optional[Dict[str, Any]] = None,
         temperature: float = 0.7,
         max_tokens: int = 4096,
+        conversation_history: Optional[List[Dict[str, str]]] = None,
     ) -> LLMResult:
-        """Generate response with optional reasoning chain-of-thought."""
+        """Generate response with optional reasoning chain-of-thought and multi-turn history."""
         pass
 
 

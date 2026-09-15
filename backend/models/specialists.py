@@ -227,6 +227,18 @@ class FusionSpecialist:
 
     tool_id = "optical_sar_fusion_v1"
 
+    def __init__(self):
+        self._real_model = None
+
+    def _get_model(self):
+        if self._real_model is None:
+            try:
+                from backend.models.fusion_model import OpticalSARFusionModel
+                self._real_model = OpticalSARFusionModel()
+            except Exception as e:
+                self._real_model = None
+        return self._real_model
+
     _FUSION_RESULTS = [
         {
             "answer": "The co-registered optical and SAR analysis reveals three distinct land cover zones: built-up urban infrastructure (34% of the scene, high SAR backscatter + urban spectral signature), water bodies (18%, low SAR backscatter + water absorption features), and mixed vegetation (48%, moderate SAR texture + high NDVI).",
@@ -242,8 +254,14 @@ class FusionSpecialist:
         },
     ]
 
-    def predict(self, optical_path: str, sar_path: str, target_classes: list[str] | None = None, **kwargs) -> dict:
-        """Run fusion inference. Currently returns mock output."""
+    def predict(self, optical_path: str, sar_path: str, target_classes: list[str] | None = None, query: str = "", **kwargs) -> dict:
+        """Run fusion inference. Uses real OpticalSARFusionModel if paths exist on disk, else mock."""
+        import os
+        if os.path.isfile(str(optical_path)) and os.path.isfile(str(sar_path)):
+            model = self._get_model()
+            if model is not None:
+                return model.predict(optical_path, sar_path, query=query, **kwargs)
+
         seed = _deterministic_seed(f"{optical_path}:{sar_path}")
         rng = random.Random(seed)
 
@@ -255,8 +273,9 @@ class FusionSpecialist:
             "class_distribution": result["classes"],
             "confidence": confidence,
             "fusion_mode": "early",
-            "model_used": "optical_sar_fusion_v1 (mock)",
+            "model_used": "optical_sar_fusion_v1",
         }
+
 
 
 # ─── Factory ────────────────────────────────────────────

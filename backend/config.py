@@ -47,6 +47,11 @@ NVIDIA_VISION_MODEL = os.getenv(
     "NVIDIA_VISION_MODEL", "nvidia/nemotron-parse-2.0"
 )
 
+# ─── Ollama Local LLM Integration ───────────────────────
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.2")
+
+
 # ─── Confidence Thresholds ──────────────────────────────
 CONFIDENCE_HIGH = 0.80
 CONFIDENCE_MEDIUM = 0.55
@@ -75,7 +80,7 @@ _logger = logging.getLogger("satquery.config")
 
 def _warn_missing_key(name: str, value: str) -> None:
     if not value:
-        _logger.warning(f"⚠ {name} is not set. Related features will be unavailable.")
+        _logger.warning(f"[WARN] {name} is not set. Related features will be unavailable.")
 
 _warn_missing_key("NASA_API_KEY", NASA_API_KEY)
 _warn_missing_key("NVIDIA_CHAT_API_KEY", NVIDIA_CHAT_API_KEY)

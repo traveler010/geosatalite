@@ -10,6 +10,8 @@ from __future__ import annotations
 from fastapi import APIRouter
 
 from backend.api.change import router as change_router
+from backend.api.chat import router as chat_router
+from backend.api.fusion import router as fusion_router
 from backend.api.health import router as health_router
 from backend.api.location import router as location_router
 from backend.api.providers import router as providers_router
@@ -21,6 +23,9 @@ api_router = APIRouter()
 api_router.include_router(health_router)
 api_router.include_router(providers_router)
 api_router.include_router(sessions_router)
+api_router.include_router(chat_router)
 api_router.include_router(satellite_router)
 api_router.include_router(location_router)
 api_router.include_router(change_router)
+api_router.include_router(fusion_router)
+

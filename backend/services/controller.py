@@ -31,6 +31,7 @@ from backend.services.chatbot_service import generate_chat_response
 from backend.models.single_image_vqa import SingleImageVQAModel
 from backend.models.captioner import RemoteSensingCaptioner
 from backend.models.change_detector import BiTemporalChangeModel
+from backend.models.fusion_model import OpticalSARFusionModel
 
 logger = get_logger("services.controller")
 
@@ -38,6 +39,7 @@ logger = get_logger("services.controller")
 _vqa_model = SingleImageVQAModel()
 _captioner = RemoteSensingCaptioner()
 _change_model = BiTemporalChangeModel()
+_fusion_model = OpticalSARFusionModel()
 
 
 def _run_coroutine_sync(coro):
@@ -110,7 +112,13 @@ def execute_query(
         }
 
     input_type = compatibility.get("input_type", "single_image")
-    modalities = [compatibility.get("modality", "optical")] if file_paths else []
+    if "images" in compatibility and isinstance(compatibility["images"], list):
+        modalities = [img.get("modality", "unknown") for img in compatibility["images"]]
+    elif file_paths:
+        modalities = [compatibility.get("modality", "optical")]
+    else:
+        modalities = []
+
 
     # ── Step 2: Task Classification via AgentRouter ───
     task_type = AgentRouter.route_task(
@@ -175,13 +183,29 @@ def execute_query(
                 image_path=file_paths[0] if file_paths else "demo_image",
                 description=query,
             )
-        elif registry_task == "fusion":
-            specialist = get_specialist("fusion")
-            raw_result = specialist.predict(
-                optical_path=file_paths[0] if len(file_paths) > 0 else "demo_optical",
-                sar_path=file_paths[1] if len(file_paths) > 1 else "demo_sar",
-                target_classes=selected_tool.get("parameters", {}).get("target_classes"),
-            )
+        elif registry_task == "fusion" or task_type == "optical_sar_fusion":
+            import os
+            p1 = file_paths[0] if len(file_paths) > 0 else "demo_optical"
+            p2 = file_paths[1] if len(file_paths) > 1 else "demo_sar"
+            if len(file_paths) >= 2 and os.path.isfile(p1) and os.path.isfile(p2):
+                raw_result = _fusion_model.predict(
+                    optical_path=p1,
+                    sar_path=p2,
+                    query=query,
+                )
+            else:
+                specialist = get_specialist("fusion")
+                raw_result = specialist.predict(
+                    optical_path=p1,
+                    sar_path=p2,
+                    target_classes=selected_tool.get("parameters", {}).get("target_classes"),
+                    query=query,
+                )
+            if "evidence" not in raw_result and "class_distribution" in raw_result:
+                raw_result["evidence"] = {
+                    "class_distribution": raw_result.get("class_distribution", {}),
+                    "fusion_mode": raw_result.get("fusion_mode", "deep"),
+                }
         else:
             raw_result = {"answer": "Analysis complete.", "confidence": 0.85}
 

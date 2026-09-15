@@ -176,6 +176,38 @@ class SessionService:
         return msg
 
     @staticmethod
+    def get_session_images(db: Session, session_id: str) -> List[ImageRecord]:
+        return db.query(ImageRecord).filter(ImageRecord.session_id == session_id).order_by(ImageRecord.created_at.asc()).all()
+
+    @staticmethod
+    def get_session_chat_history(
+        db: Session,
+        session_id: str,
+        limit: int = 50,
+    ) -> List[ChatMessageRecord]:
+        return (
+            db.query(ChatMessageRecord)
+            .filter(ChatMessageRecord.session_id == session_id)
+            .order_by(ChatMessageRecord.created_at.asc())
+            .limit(limit)
+            .all()
+        )
+
+    @staticmethod
+    def get_session_analysis_history(
+        db: Session,
+        session_id: str,
+        limit: int = 50,
+    ) -> List[AnalysisResultRecord]:
+        return (
+            db.query(AnalysisResultRecord)
+            .filter(AnalysisResultRecord.session_id == session_id)
+            .order_by(AnalysisResultRecord.created_at.asc())
+            .limit(limit)
+            .all()
+        )
+
+    @staticmethod
     def record_execution_log(
         db: Session,
         session_id: str,
@@ -199,3 +231,4 @@ class SessionService:
         db.commit()
         db.refresh(log)
         return log
+

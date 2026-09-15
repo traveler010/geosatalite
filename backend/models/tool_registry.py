@@ -103,16 +103,17 @@ TOOL_REGISTRY: list[dict] = [
         "accepts": {
             "input_type": "optical_sar_pair",
             "modality": ["optical+sar"],
-            "formats": ["GeoTIFF", "TIFF"],
+            "formats": ["GeoTIFF", "TIFF", "PNG", "JPEG"],
         },
         "parameters": {
             "target_classes": ["built_up", "water", "vegetation", "bare_soil"],
-            "fusion_mode": ["early", "late"],
+            "fusion_mode": ["early", "deep", "late"],
         },
         "outputs": ["classification_map", "class_labels", "answer_text", "confidence"],
-        "reference_model": "Dual-branch early fusion / EarthGPT-X",
-        "evaluation_benchmarks": ["BigEarthNet.txt benchmark split"],
+        "reference_model": "OpticalSARFusionNet / Dual-branch cross-gated fusion",
+        "evaluation_benchmarks": ["BigEarthNet-MM benchmark split"],
     },
+
 ]
 
 

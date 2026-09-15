@@ -111,8 +111,11 @@ async def root():
             "POST /api/satellite/fetch",
             "GET  /api/location/search",
             "POST /api/change/analyze",
+            "POST /api/fusion/analyze",
+            "GET  /api/fusion/status",
         ],
     }
+
 
 
 @app.get("/health")

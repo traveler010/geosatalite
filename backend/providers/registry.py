@@ -23,6 +23,7 @@ from backend.providers.deepseek_provider import DeepSeekProvider
 from backend.providers.local_llm_provider import LocalLLMProvider
 from backend.providers.nasa_provider import NASAProvider
 from backend.providers.nvidia_provider import NvidiaProvider
+from backend.providers.ollama_provider import OllamaProvider
 
 logger = get_logger("providers.registry")
 
@@ -41,6 +42,7 @@ class ProviderRegistry:
         if cls._instance is None:
             cls._instance = ProviderRegistry()
             # Auto-register core providers
+            cls._instance.register(OllamaProvider())
             cls._instance.register(DeepSeekProvider())
             cls._instance.register(LocalLLMProvider())
             cls._instance.register(NvidiaProvider())
@@ -76,22 +78,30 @@ class ProviderRegistry:
         return p.is_available() if p else False
 
     def get_llm_provider(self, preferred: Optional[str] = None) -> BaseLLMProvider:
-        """Resolve LLM provider with fallback chain: DeepSeek -> LocalLLM."""
+        """Resolve LLM provider with fallback chain: Preferred -> Ollama -> DeepSeek -> LocalLLM."""
         if preferred and preferred in self._providers:
             p = self._providers[preferred]
             if isinstance(p, BaseLLMProvider) and p.is_available():
                 return p
 
+        # Check local Ollama
+        ollama = self._providers.get("ollama")
+        if isinstance(ollama, BaseLLMProvider) and ollama.is_available():
+            return ollama
+
+        # Check cloud DeepSeek
         deepseek = self._providers.get("deepseek")
         if isinstance(deepseek, BaseLLMProvider) and deepseek.is_available():
             return deepseek
 
+        # Domain-grounded deterministic Local LLM
         local = self._providers.get("local_llm")
         if isinstance(local, BaseLLMProvider):
             return local
 
         # Absolute safety fallback
         return LocalLLMProvider()
+
 
     def get_vision_provider(self, preferred: Optional[str] = None) -> Optional[BaseVisionProvider]:
         """Resolve Vision provider."""

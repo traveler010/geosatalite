@@ -47,12 +47,18 @@ def aggregate_outputs(raw_result: dict, task_type: str) -> dict:
             "change_map_ref": raw_result.get("change_map_ref"),
         }
 
-    elif task_type == "fusion":
+    elif task_type in ("fusion", "optical_sar_fusion"):
         aggregated["answer"] = raw_result.get("answer", "No fusion analysis generated.")
-        aggregated["evidence"] = {
-            "class_distribution": raw_result.get("class_distribution", {}),
-            "fusion_mode": raw_result.get("fusion_mode", "early"),
-        }
+        if "evidence" in raw_result and isinstance(raw_result["evidence"], dict):
+            aggregated["evidence"] = raw_result["evidence"]
+        else:
+            aggregated["evidence"] = {
+                "class_distribution": raw_result.get("class_distribution", {}),
+                "fusion_mode": raw_result.get("fusion_mode", "early"),
+            }
+        if "overlay_path" in raw_result:
+            aggregated["evidence"]["overlay_path"] = raw_result.get("overlay_path")
+
 
     else:
         aggregated["answer"] = raw_result.get("answer", "Analysis complete.")

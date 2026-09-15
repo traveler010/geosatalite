@@ -471,3 +471,96 @@ export async function parseVisionNemotron(imageUrl, options = {}) {
   }
   return await resp.json();
 }
+
+// ─── Phase 8: Optical + SAR Fusion ─────────────────────────
+
+/**
+ * Execute Optical + SAR multimodal fusion analysis
+ * @param {string} sessionId
+ * @param {string} opticalImageId
+ * @param {string} sarImageId
+ * @param {string} query
+ * @param {string} fusionMode - 'early' or 'deep'
+ */
+export async function analyzeFusion(sessionId, opticalImageId, sarImageId, query = '', fusionMode = 'deep') {
+  const resp = await fetch(`${BACKEND_BASE}/api/fusion/analyze`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      session_id: sessionId,
+      optical_image_id: opticalImageId,
+      sar_image_id: sarImageId,
+      query,
+      fusion_mode: fusionMode,
+    }),
+  });
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({ detail: 'Fusion analysis failed' }));
+    throw new Error(err.detail || 'Optical-SAR fusion request failed');
+  }
+  return await resp.json();
+}
+
+/**
+ * Fetch operating status of Optical + SAR fusion subsystem
+ */
+export async function fetchFusionStatus() {
+  const resp = await fetch(`${BACKEND_BASE}/api/fusion/status`);
+  if (!resp.ok) {
+    throw new Error(`Fusion status request failed: ${resp.status}`);
+  }
+  return await resp.json();
+}
+
+// ─── Phase 9: Session-Aware AI Chat ────────────────────────
+
+/**
+ * Send a message to the session-aware AI assistant
+ * @param {string} sessionId
+ * @param {string} message
+ * @param {string|null} preferredProvider - 'ollama', 'deepseek', or 'local_llm'
+ * @param {number} temperature
+ */
+export async function sendSessionChat(sessionId, message, preferredProvider = null, temperature = 0.7) {
+  const resp = await fetch(`${BACKEND_BASE}/api/sessions/${sessionId}/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      message,
+      preferred_provider: preferredProvider,
+      temperature,
+    }),
+  });
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({ detail: 'Session chat failed' }));
+    throw new Error(err.detail || 'Session chat request failed');
+  }
+  return await resp.json();
+}
+
+/**
+ * Fetch multi-turn conversation history for a session
+ * @param {string} sessionId
+ * @param {number} limit
+ */
+export async function fetchSessionChatHistory(sessionId, limit = 50) {
+  const resp = await fetch(`${BACKEND_BASE}/api/sessions/${sessionId}/chat/history?limit=${limit}`);
+  if (!resp.ok) {
+    throw new Error(`Failed to fetch session chat history: ${resp.status}`);
+  }
+  return await resp.json();
+}
+
+/**
+ * Fetch compiled ground-truth facts and cached analysis for a session
+ * @param {string} sessionId
+ */
+export async function fetchSessionCache(sessionId) {
+  const resp = await fetch(`${BACKEND_BASE}/api/sessions/${sessionId}/cache`);
+  if (!resp.ok) {
+    throw new Error(`Failed to fetch session cache: ${resp.status}`);
+  }
+  return await resp.json();
+}
+
+
