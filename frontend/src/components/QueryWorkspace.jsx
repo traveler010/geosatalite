@@ -3,6 +3,7 @@ import { ArrowUp, Loader2, Crosshair, Droplets, Fuel, Layers, Download, Sparkles
 import { useAppStore } from '../store/useAppStore';
 import { queryBackendV2, fetchTools } from '../services/api';
 import ExecutionTrace from './ExecutionTrace';
+import ExecutionTimeline from './ExecutionTimeline';
 import ReportExport from './ReportExport';
 
 const QUICK_PROMPTS = [
@@ -273,6 +274,9 @@ export default function QueryWorkspace() {
                     </div>
                   )}
                 </div>
+
+                {/* Execution Timeline */}
+                <ExecutionTimeline trace={result.trace} executionSteps={result.trace?.execution_steps} />
 
                 {/* Report Export */}
                 {result.query_id && (

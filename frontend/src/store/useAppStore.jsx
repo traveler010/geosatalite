@@ -52,6 +52,22 @@ const initialState = {
   customUtcHours: new Date().getUTCHours() + new Date().getUTCMinutes() / 60,
   isPlayingTimelapse: false,   // continuous time-lapse rotation
   nightLightsBoost: 1.8,       // Night city lights emission intensity multiplier
+
+  // Phase 4 Futuristic Globe States: 'idle' | 'processing' | 'location_found' | 'location_locked' | 'location_unknown'
+  globeState: 'idle',
+  locationCard: {
+    visible: false,
+    location: '',
+    latitude: 20.5937,
+    longitude: 78.9629,
+    altitude: 3000,
+    confidence: 0.95,
+    sensor: 'Sentinel-2 MSI',
+    source: 'Copernicus Sentinel Hub',
+    acquisitionDate: '2026-09-14',
+    resolution: '10m Multispectral',
+    crs: 'WGS84 / EPSG:4326',
+  },
 };
 
 // ─── Action Types ───────────────────────────────────────
@@ -75,6 +91,9 @@ const SET_TIME_MODE = 'SET_TIME_MODE';
 const SET_CUSTOM_UTC_HOURS = 'SET_CUSTOM_UTC_HOURS';
 const TOGGLE_TIMELAPSE = 'TOGGLE_TIMELAPSE';
 const SET_NIGHT_LIGHTS_BOOST = 'SET_NIGHT_LIGHTS_BOOST';
+const SET_GLOBE_STATE = 'SET_GLOBE_STATE';
+const SET_LOCATION_CARD = 'SET_LOCATION_CARD';
+const HIDE_LOCATION_CARD = 'HIDE_LOCATION_CARD';
 
 // ─── Reducer ────────────────────────────────────────────
 
@@ -148,6 +167,25 @@ function appReducer(state, action) {
       return { ...state, isPlayingTimelapse: !state.isPlayingTimelapse };
     case SET_NIGHT_LIGHTS_BOOST:
       return { ...state, nightLightsBoost: action.payload };
+    case SET_GLOBE_STATE:
+      return { ...state, globeState: action.payload };
+    case SET_LOCATION_CARD:
+      return {
+        ...state,
+        locationCard: {
+          ...state.locationCard,
+          ...action.payload,
+          visible: true,
+        },
+      };
+    case HIDE_LOCATION_CARD:
+      return {
+        ...state,
+        locationCard: {
+          ...state.locationCard,
+          visible: false,
+        },
+      };
     default:
       return state;
   }
@@ -237,6 +275,41 @@ export function AppStoreProvider({ children }) {
 
     setNightLightsBoost: useCallback((boost) => {
       dispatch({ type: SET_NIGHT_LIGHTS_BOOST, payload: boost });
+    }, []),
+
+    setGlobeState: useCallback((globeState) => {
+      dispatch({ type: SET_GLOBE_STATE, payload: globeState });
+    }, []),
+
+    setLocationCard: useCallback((cardData) => {
+      dispatch({ type: SET_LOCATION_CARD, payload: cardData });
+    }, []),
+
+    hideLocationCard: useCallback(() => {
+      dispatch({ type: HIDE_LOCATION_CARD });
+    }, []),
+
+    lockLocation: useCallback(({ location, label, sensor, source, confidence, acquisitionDate, resolution, crs }) => {
+      dispatch({ type: SET_GLOBE_STATE, payload: 'location_locked' });
+      dispatch({
+        type: FLY_TO,
+        payload: { location, label: label || 'Target Locked' },
+      });
+      dispatch({
+        type: SET_LOCATION_CARD,
+        payload: {
+          location: label || 'Target Locked Zone',
+          latitude: location.latitude,
+          longitude: location.longitude,
+          altitude: location.altitude || 3000,
+          confidence: confidence ?? 0.95,
+          sensor: sensor || 'Sentinel-2 MSI',
+          source: source || 'Copernicus / Georeferenced Scene',
+          acquisitionDate: acquisitionDate || new Date().toISOString().split('T')[0],
+          resolution: resolution || '10m Multi-spectral',
+          crs: crs || 'WGS84 / EPSG:4326',
+        },
+      });
     }, []),
   };
 

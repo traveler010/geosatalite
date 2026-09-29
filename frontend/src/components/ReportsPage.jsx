@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { FileText, Clock, Target, Gauge, Trash2, RefreshCw, ExternalLink, Download } from 'lucide-react';
 import ReportExport from './ReportExport';
+import ExecutionTimeline from './ExecutionTimeline';
 import { BACKEND_BASE } from '../services/api';
 
 
@@ -149,6 +150,9 @@ export default function ReportsPage() {
                         {JSON.stringify(selectedTrace, null, 2)}
                       </pre>
                     </div>
+
+                    {/* Execution Timeline */}
+                    <ExecutionTimeline trace={selectedTrace} executionSteps={selectedTrace.execution_steps} />
 
                     {/* Download */}
                     <ReportExport queryId={selectedTrace.query_id} />

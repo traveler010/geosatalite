@@ -21,6 +21,21 @@ def detect_modality(file_path: str, user_hint: str = "") -> str:
     Detect image modality from file metadata / user hint.
     Returns: 'optical', 'sar', 'multispectral', or 'unknown'.
     """
+    try:
+        from backend.services.fusion_service import OpticalSARFusionService
+        detected = OpticalSARFusionService.detect_modality(file_path, user_hint)
+        if detected in ("sar", "optical"):
+            # Check if multispectral (4+ bands)
+            try:
+                with Image.open(file_path) as img:
+                    if len(img.getbands()) >= 4:
+                        return "multispectral"
+            except Exception:
+                pass
+            return detected
+    except Exception:
+        pass
+
     hint_lower = user_hint.lower()
     if "sar" in hint_lower or "radar" in hint_lower or "sentinel-1" in hint_lower or "risat" in hint_lower:
         return "sar"
@@ -49,14 +64,35 @@ def detect_modality(file_path: str, user_hint: str = "") -> str:
     return "unknown"
 
 
+
 def extract_metadata(file_path: str) -> dict:
-    """Extract basic image metadata."""
+    """Extract basic image metadata using Rasterio for GeoTIFFs and Pillow for standard images."""
     meta = {
         "file_name": os.path.basename(file_path),
         "file_size_bytes": os.path.getsize(file_path),
         "format": Path(file_path).suffix.lower().lstrip("."),
     }
 
+    # 1. Try Rasterio first (handles arbitrary band counts, float32, and complex GeoTIFF headers)
+    try:
+        import rasterio
+        with rasterio.open(file_path) as src:
+            meta["width"] = src.width
+            meta["height"] = src.height
+            meta["bands"] = src.count
+            meta["band_names"] = [d or f"Band_{i+1}" for i, d in enumerate(src.descriptions or [])]
+            if not meta["band_names"]:
+                meta["band_names"] = [f"Band_{i+1}" for i in range(src.count)]
+            meta["mode"] = f"{src.dtypes[0]}_{src.count}band"
+            meta["is_georeferenced"] = bool(src.crs)
+            if src.crs:
+                meta["crs"] = str(src.crs)
+            meta["geotiff_tags"] = {str(k): str(v) for k, v in src.tags().items()}
+            return meta
+    except Exception:
+        pass
+
+    # 2. Fallback to Pillow for standard PNG/JPEG
     try:
         with Image.open(file_path) as img:
             meta["width"] = img.width
@@ -89,6 +125,7 @@ def extract_metadata(file_path: str) -> dict:
         meta["error"] = f"Could not read image: {str(e)}"
 
     return meta
+
 
 
 def validate_format(file_path: str) -> tuple[bool, str]:

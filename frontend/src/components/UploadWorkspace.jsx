@@ -62,6 +62,22 @@ export default function UploadWorkspace() {
           `${selectedFiles.length} image(s) uploaded and validated. Detected: ${result.compatibility.input_type}, modality: ${result.compatibility.modality || 'auto-detected'}.`,
           'UPLOAD / VALIDATION PASSED'
         );
+
+        // Phase 4: Automatically animate globe to detected coordinates if georeferenced
+        const geo = result.geospatial_metadata?.[0] || result.compatibility?.metadata?.geospatial;
+        if (geo?.bounds_wgs84) {
+          const b = geo.bounds_wgs84;
+          const lat = (b.min_lat + b.max_lat) / 2;
+          const lon = (b.min_lon + b.max_lon) / 2;
+          actions.lockLocation({
+            location: { latitude: lat, longitude: lon, altitude: 4000 },
+            label: selectedFiles[0]?.name || 'Uploaded Satellite Scene',
+            sensor: geo.is_multispectral ? 'Multispectral (10m)' : geo.modality === 'sar' ? 'SAR Sentinel-1' : 'High-Res Optical',
+            source: 'Embedded GeoTIFF Header',
+            confidence: 0.99,
+            crs: geo.crs || 'WGS84 / EPSG:4326',
+          });
+        }
       }
     } catch (err) {
       setUploadResult({

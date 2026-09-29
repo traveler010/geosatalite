@@ -6,7 +6,8 @@ import GlobeErrorBoundary from './GlobeErrorBoundary';
 import SearchHUD from './SearchHUD';
 import QuickLocations from './QuickLocations';
 import SolarTimeHUD from './SolarTimeHUD';
-import { Upload, Eye } from 'lucide-react';
+import LocationCard from './LocationCard';
+import { Upload, Eye, Radio } from 'lucide-react';
 
 export default function GlobePanel() {
   const { state, actions } = useAppStore();
@@ -73,10 +74,21 @@ export default function GlobePanel() {
         {/* Search Overlay */}
         <SearchHUD />
 
-        {/* View Mode Readout */}
-        <div className="absolute top-[65px] left-4 z-10 px-[9px] py-[7px] glass-readout rounded-[7px] font-mono text-[9px] text-[#b8c9da]">
-          <Eye className="inline-block w-3 h-3 mr-1 -mt-0.5" />
-          VIEW MODE <strong className="text-emerald font-medium">3D / TERRAIN</strong> · MOUSE NAVIGATION ENABLED
+        {/* View Mode & Globe State Readout */}
+        <div className="absolute top-[65px] left-4 z-10 flex items-center gap-2 max-sm:flex-col max-sm:items-start">
+          <div className="px-[9px] py-[7px] glass-readout rounded-[7px] font-mono text-[9px] text-[#b8c9da]">
+            <Eye className="inline-block w-3 h-3 mr-1 -mt-0.5" />
+            VIEW MODE <strong className="text-emerald font-medium">3D / TERRAIN</strong> · MOUSE NAVIGATION ENABLED
+          </div>
+
+          {/* Phase 4 Globe State Badge */}
+          <div className="px-[9px] py-[7px] glass-readout rounded-[7px] font-mono text-[9px] flex items-center gap-1.5 border border-border/80">
+            <Radio className={`w-3 h-3 ${state.globeState === 'processing' ? 'text-amber-400 animate-spin' : state.globeState === 'location_locked' ? 'text-cyan-400 animate-pulse' : 'text-emerald-400'}`} />
+            <span className="text-faint">ORBITAL SYSTEM:</span>
+            <strong className={`font-semibold tracking-wider ${state.globeState === 'processing' ? 'text-amber-300' : state.globeState === 'location_locked' ? 'text-cyan-300' : state.globeState === 'location_unknown' ? 'text-rose-400' : 'text-emerald-300'}`}>
+              {state.globeState.toUpperCase().replace('_', ' ')}
+            </strong>
+          </div>
         </div>
 
         {/* 3D Earth Viewport */}
@@ -94,6 +106,9 @@ export default function GlobePanel() {
             <EarthGlobe />
           </Suspense>
         </GlobeErrorBoundary>
+
+        {/* Phase 4 Futuristic Location Card */}
+        <LocationCard />
 
         {/* Quick Locations */}
         <QuickLocations />

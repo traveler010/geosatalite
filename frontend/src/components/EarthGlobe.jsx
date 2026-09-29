@@ -8,6 +8,7 @@ import { formatAltitude } from '../services/api';
 import { calculateSolarPosition } from '../utils/solarCalculator';
 import { Universe } from './3d/Universe';
 import { EarthDayNightShader, EarthCloudsShader, AtmosphereShader } from './3d/EarthShaders';
+import TargetReticle from './3d/TargetReticle';
 
 const GLOBE_RADIUS = 2;
 
@@ -447,14 +448,21 @@ export default function EarthGlobe() {
 
         <CameraController />
 
-        {/* Active location marker */}
+        {/* Active location marker & Holographic Reticle */}
         {state.locationLabel && (
-          <LocationMarker
-            lat={state.activeLocation.latitude}
-            lng={state.activeLocation.longitude}
-            label={state.locationLabel}
-            color="#10b981"
-          />
+          <>
+            <TargetReticle
+              lat={state.activeLocation.latitude}
+              lng={state.activeLocation.longitude}
+              globeState={state.globeState}
+            />
+            <LocationMarker
+              lat={state.activeLocation.latitude}
+              lng={state.activeLocation.longitude}
+              label={state.locationLabel}
+              color="#10b981"
+            />
+          </>
         )}
 
         {/* Analysis entities */}
